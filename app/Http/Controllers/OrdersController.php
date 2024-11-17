@@ -21,10 +21,12 @@ class OrdersController extends Controller
     }
 
 
-//    public function storeOrderBotSetting(Request $request)
-//    {
-//
-//    }
+    public function storeOrderBotSetting(Request $request)
+    {
+            dd($request);
+    }
+
+
     public function generateOrders(Request $request)
     {
 
