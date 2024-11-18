@@ -24,5 +24,6 @@ class OrderBotSettings extends Model
         'order_speed_unit',
         'csv_file_path',
         'telegram_bot',
+        'unlimited_orders',
     ];
 }

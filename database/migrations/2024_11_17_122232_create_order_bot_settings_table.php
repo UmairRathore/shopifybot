@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('order_speed_unit')->default('seconds'); // 'seconds', 'minutes', 'hours'
             $table->string('csv_file_path')->nullable(); // Path to the CSV file
             $table->boolean('telegram_bot')->nullable(); // Path to the CSV file
+            $table->boolean('unlimited_orders')->nullable(); // Path to the CSV file
             $table->timestamps();
         });
     }

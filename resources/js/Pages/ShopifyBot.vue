@@ -37,7 +37,7 @@ const setMode = (mode) => {
 const refreshButtonText = ref("Refresh Token");
 const isRefreshDisabled = ref(false);
 const isTokenRefreshed = ref(false);
-const remainingTime = ref(0); 
+const remainingTime = ref(0);
 const errorMessage = ref("");
 let timerInterval;
 const timerMinutes = computed(() => Math.floor(remainingTime.value / 60));
@@ -53,14 +53,14 @@ const refreshToken = async () => {
         refreshButtonText.value = "Token Obtained";
 
         // Start the 1-hour timer
-        remainingTime.value = 3600; 
+        remainingTime.value = 3600;
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             if (remainingTime.value > 0) {
                 remainingTime.value -= 1;
             } else {
                 clearInterval(timerInterval);
-                isTokenRefreshed.value = false; 
+                isTokenRefreshed.value = false;
                 refreshButtonText.value = "Refresh Token";
                 isRefreshDisabled.value = false;
             }
@@ -77,7 +77,7 @@ const startProcess = () => {
         return;
     }
     console.log("Process started successfully!");
-    errorMessage.value = ""; 
+    errorMessage.value = "";
 };
 
 
@@ -109,6 +109,7 @@ const submitForm = () => {
             console.log(errors);
         },
     });
+};
 </script>
 
 <template>
