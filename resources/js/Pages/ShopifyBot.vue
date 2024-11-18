@@ -33,6 +33,7 @@ const setMode = (mode) => {
 };
 
 
+
 const refreshButtonText = ref("Refresh Token");
 const isRefreshDisabled = ref(false);
 const isTokenRefreshed = ref(false);
@@ -95,7 +96,7 @@ const  form = useForm({
     order_speed_max: '',    //11
     order_frequency: 'second',  //12
     file_location: '',  //13
-    telegramBot: false, //14
+    telegram_bot: false, //14
 });
 
 const submitForm = () => {
@@ -224,7 +225,7 @@ const submitForm = () => {
 
                     <!-- Fifth Row -->
                     <div class="flex gap-2 mb-5">
-                        <input type="radio" v-model="form.telegram_bot" id="telegramBot" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600" />
+                        <input type="radio" v-model="form.telegram_bot" id="telegram_bot" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600" />
                         <label for="telegramBot" class="text-sm">Telegram Bot</label>
                     </div>
 
