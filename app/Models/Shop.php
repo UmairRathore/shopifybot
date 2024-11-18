@@ -14,6 +14,8 @@ class Shop extends Model
         'shop_domain',
         'access_token',
         'user_id',
+        'updated_at',
+        'created_at',
     ];
 
     public function user()

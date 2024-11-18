@@ -42,6 +42,7 @@ Route::middleware([
     Route::get('/auth/callback', [ShopifyController::class, 'handleCallback']);
 
     Route::get('/generate-order', [OrdersController::class, 'generateOrders']);
+    Route::post('/bot-order-setting', [OrdersController::class, 'storeOrderBotSetting'])->name('shopifybot.store');
 
 });
 

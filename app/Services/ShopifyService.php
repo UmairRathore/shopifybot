@@ -46,7 +46,7 @@ class ShopifyService
         Log::info('Handling callback from Shopify.');
 
         // Extract parameters from the request sent by Shopify
-        $shop = $request->input('shop'); // The shop domain (e.g., testingdev050.myshopify.com)
+        $shop_domain = $request->input('shop'); // The shop domain (e.g., testingdev050.myshopify.com)
         $code = $request->input('code');
         $hmac = $request->input('hmac');
 
@@ -61,8 +61,8 @@ class ShopifyService
         }
 
         // Make the request to get the access token
-        Log::info("Making request to get access token for shop: {$shop}");
-        $response = $this->clientHTTP->post("https://{$shop}/admin/oauth/access_token", [
+        Log::info("Making request to get access token for shop: {$shop_domain}");
+        $response = $this->clientHTTP->post("https://{$shop_domain}/admin/oauth/access_token", [
             'form_params' => [
                 'client_id' => $this->client_id,
                 'client_secret' => $this->clientSecret,
@@ -76,8 +76,8 @@ class ShopifyService
         Log::info("Access token obtained: {$accessToken}");
 
         // Store the access token in the database (secure approach)
-        Shop::updateOrCreate(
-            ['shop_domain' => $shop, 'user_id' => auth()->user()->id],
+      Shop::updateOrCreate(
+            ['shop_domain' => $shop_domain, 'user_id' => auth()->user()->id],
             [
                 'access_token' => $accessToken,
                 'updated_at' => now()
