@@ -26,7 +26,6 @@ const setMode = (mode) => {
     }
 };
 
-
 const refreshButtonText = ref("Refresh Token");
 const isRefreshDisabled = ref(false);
 const isTokenRefreshed = ref(false);

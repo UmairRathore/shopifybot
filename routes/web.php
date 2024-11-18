@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ShopifyController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -14,6 +17,7 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -33,4 +37,15 @@ Route::middleware([
         return Inertia::render('Dashboard');
     })->name('dashboard');
     Route::inertia('/shopifybot' , 'ShopifyBot')->name('shopifybot.index');
+
+    Route::get('/auth', [ShopifyController::class, 'redirectToShopify']);
+    Route::get('/auth/callback', [ShopifyController::class, 'handleCallback']);
+
+    Route::get('/generate-order', [OrdersController::class, 'generateOrders']);
+    Route::post('/bot-order-setting', [OrdersController::class, 'storeOrderBotSetting'])->name('shopifybot.store');
+
 });
+
+
+
+
