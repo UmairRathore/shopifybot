@@ -105,9 +105,9 @@ class OrderGenerate
             ];
 
             //Step 6: Create Orders
-//            $orderResponse = $this->shopifyService->generateOrder($orderPayload,$accessToken);
+            $orderResponse = $this->shopifyService->generateOrder($orderPayload,$accessToken);
 
-
+Log::info($orderResponse);
             //Step 7:
 //            $inventoryResponse = $this->updateInventory($orderResponse['order'],$customer,$orderValue,$orderItems,$accessToken);
 
