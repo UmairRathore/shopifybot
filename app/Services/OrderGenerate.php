@@ -8,15 +8,20 @@ use Faker\Factory as Faker;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Telegram\Bot\Api;
 
 class OrderGenerate
 {
     protected $shopifyService;
+    protected $telegramChatID;
+    protected $telegramBotToken;
 
 
     public function __construct(ShopifyService $shopifyService)
     {
         $this->shopifyService = $shopifyService;
+        $this->telegramChatID = env('TELEGRAM_CHAT_ID');
+        $this->telegramBotToken = env('TELEGRAM_BOT_TOKEN');
     }
 
 
@@ -100,13 +105,21 @@ class OrderGenerate
             ];
 
             //Step 6: Create Orders
-            $orderResponse = $this->shopifyService->generateOrder($orderPayload,$accessToken);
+//            $orderResponse = $this->shopifyService->generateOrder($orderPayload,$accessToken);
 
 
-            $inventoryResponse = $this->updateInventory($orderResponse['order'],$customer,$orderValue,$orderItems,$accessToken);
+            //Step 7:
+//            $inventoryResponse = $this->updateInventory($orderResponse['order'],$customer,$orderValue,$orderItems,$accessToken);
+
+//            Log::info($inventoryResponse);
+
+            //Step 8:
+            $telegramResponse = $this->telegramNotification($orderValue,$orderItems,$customer);
+//dd($telegramResponse);
+            Log::info($telegramResponse);
 
 
-            // Step 7: Simulate order creation delay
+            // Step 9: Simulate order creation delay
             sleep($orderSpeed);
         }
 
@@ -130,36 +143,72 @@ class OrderGenerate
     }
 
 
-    private function updateInventory($order, $customer, $orderValue, $orderItems, $accessToken)
+//    private function updateInventory($order, $customer, $orderValue, $orderItems, $accessToken)
+//    {
+//        if (isset($order)) {
+//            Log::info("Order created for customer: {$customer['name']} with order value: {$orderValue}");
+//
+//            $responses = [];
+//
+//            foreach ($orderItems as $item) {
+//                $variantId = $item['variant_id'];
+//                $quantitySold = $item['quantity'];
+//
+//                $locationId = $this->shopifyService->fetchLocationId($accessToken);
+//
+//                $inventoryResponse = $this->shopifyService->inventoryUpdate($variantId, $quantitySold, $accessToken, $locationId);
+//
+//                Log::info("Inventory adjusted for variant ID: {$variantId}, quantity: -{$quantitySold}");
+//
+//                if ($inventoryResponse) {
+//                    $responses[] = $inventoryResponse;
+//                } else {
+//                    Log::error("Failed to adjust inventory for variant ID: {$variantId}");
+//                }
+//            }
+//
+//            return $responses;
+//        } else {
+//            Log::error("Failed to create order for customer: {$customer['name']}");
+//            return response()->json(['error' => 'Order creation failed'], 500);
+//        }
+//    }
+
+    private function telegramNotification($orderValue, $orderItems, $customer)
     {
-        if (isset($order)) {
-            Log::info("Order created for customer: {$customer['name']} with order value: {$orderValue}");
-
-            $responses = [];
-
-            foreach ($orderItems as $item) {
-                $variantId = $item['variant_id'];
-                $quantitySold = $item['quantity'];
-
-                $locationId = $this->shopifyService->fetchLocationId($accessToken);
-
-                $inventoryResponse = $this->shopifyService->inventoryUpdate($variantId, $quantitySold, $accessToken, $locationId);
-
-                Log::info("Inventory adjusted for variant ID: {$variantId}, quantity: -{$quantitySold}");
-
-                if ($inventoryResponse) {
-                    $responses[] = $inventoryResponse;
-                } else {
-                    Log::error("Failed to adjust inventory for variant ID: {$variantId}");
-                }
-            }
-
-            return $responses;
-        } else {
-            Log::error("Failed to create order for customer: {$customer['name']}");
-            return response()->json(['error' => 'Order creation failed'], 500);
+        $message  =  "New Order Generated:\n";
+        $message .= "Customer: {$customer['name']}\n";
+        $message .= "Email: {$customer['email']}\n";
+        $message .= "Address: {$customer['address']}\n";
+        $message .= "Order Value: $ {$orderValue}\n";
+        $message .= "Items:\n";
+        foreach ($orderItems as $item) {
+            $message .= "- Product Variant ID: {$item['variant_id']} | Quantity: {$item['quantity']}\n";
         }
+
+        $telegram = new Api($this->telegramBotToken);
+
+        $chatId = $this->telegramChatID;
+
+        try {
+            // Sending the message to Telegram
+            $response = $telegram->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $message,
+            ]);
+
+            // If response is successful, log the result
+            Log::info('Telegram message sent successfully', ['response' => $response]);
+            print_r($telegram);
+            return $message;
+
+        } catch (\Telegram\Bot\Exceptions\TelegramSDKException $e) {
+            // Log the error if sending failed
+            Log::error('Failed to send message to Telegram', ['error' => $e->getMessage()]);
+        }
+
     }
+
 }
 
 
