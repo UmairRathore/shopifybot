@@ -1,8 +1,10 @@
 <script setup>
 import AppLayout from "@/Layouts/AppLayout.vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
+
 import { useForm } from "@inertiajs/vue3";
 const file_location = ref("");
+
 
 
 const handleFileChange = (event) => {
@@ -28,6 +30,54 @@ const setMode = (mode) => {
         purchase.value = false;
         visit.value = true;
     }
+};
+
+
+
+const refreshButtonText = ref("Refresh Token");
+const isRefreshDisabled = ref(false);
+const isTokenRefreshed = ref(false);
+const remainingTime = ref(0); 
+const errorMessage = ref("");
+let timerInterval;
+const timerMinutes = computed(() => Math.floor(remainingTime.value / 60));
+const timerSeconds = computed(() => remainingTime.value % 60);
+const refreshToken = async () => {
+    refreshButtonText.value = "Processing...";
+    isRefreshDisabled.value = true;
+    errorMessage.value = "";
+    try {
+        const response = await fetch("/api/refresh-token", { method: "POST" });
+        if (!response.ok) throw new Error("Failed to refresh token");
+        isTokenRefreshed.value = true;
+        refreshButtonText.value = "Token Obtained";
+
+        // Start the 1-hour timer
+        remainingTime.value = 3600; 
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (remainingTime.value > 0) {
+                remainingTime.value -= 1;
+            } else {
+                clearInterval(timerInterval);
+                isTokenRefreshed.value = false; 
+                refreshButtonText.value = "Refresh Token";
+                isRefreshDisabled.value = false;
+            }
+        }, 1000);
+    } catch (error) {
+        console.error(error);
+        refreshButtonText.value = "Try Again";
+        isRefreshDisabled.value = false;
+    }
+};
+const startProcess = () => {
+    if (!isTokenRefreshed.value) {
+        errorMessage.value = "Please refresh the token first.";
+        return;
+    }
+    console.log("Process started successfully!");
+    errorMessage.value = ""; 
 };
 
 
@@ -59,14 +109,22 @@ const submitForm = () => {
             console.log(errors);
         },
     });
-};
 </script>
 
 <template>
     <AppLayout title="Shopify Bot">
         <div class="flex items-center justify-center min-h-screen bg-gray-900 text-white px-6" v-if="purchase">
             <div class="bg-gray-800 rounded-lg shadow-lg p-8 w-50">
-                <h2 class="text-2xl font-semibold mb-8">Shopify Bot</h2>
+                <div class="mb-3">
+                    <button :disabled="isRefreshDisabled" @click="refreshToken"
+                        class="w-60 py-2 bg-blue-600 hover:bg-blue-700 rounded-2xl text-white">
+                        {{ refreshButtonText }}
+                    </button>
+                </div>
+                <div v-if="remainingTime > 0" class="text-center text-gray-800 font-bold">
+                    Next token refresh in: {{ timerMinutes }}m {{ timerSeconds }}s
+                </div>
+
                 <div class="mb-8">
                     <label class="block text-sm font-medium mb-2">Mode</label>
                     <div class="flex gap-4">
@@ -154,6 +212,7 @@ const submitForm = () => {
                         </div>
                     </div>
 
+
                     <!-- Fourth Row -->
                     <div class="mb-5">
                         <label class="block text-white text-sm font-bold mb-2">Customers Data (Name, Email, Address)</label>
@@ -171,11 +230,17 @@ const submitForm = () => {
                     </div>
 
                     <!-- Footer -->
-                    <div class="mb-3">
-                        <button class="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-2xl text-white">
-                            Start
-                        </button>
-                    </div>
+                <div>
+                    <button @click="startProcess"
+                        class="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-2xl text-white">
+                        Start
+                    </button>
+                </div>
+
+                <!-- Error Message -->
+                <div v-if="errorMessage" class="text-red-500 text-sm font-semibold">
+                    {{ errorMessage }}
+                </div>
                 </form>
             </div>
         </div>
