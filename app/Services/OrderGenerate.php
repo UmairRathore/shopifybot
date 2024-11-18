@@ -107,16 +107,23 @@ class OrderGenerate
             //Step 6: Create Orders
             $orderResponse = $this->shopifyService->generateOrder($orderPayload,$accessToken);
 
-Log::info($orderResponse);
+            Log::info($orderResponse);
             //Step 7:
 //            $inventoryResponse = $this->updateInventory($orderResponse['order'],$customer,$orderValue,$orderItems,$accessToken);
 
 //            Log::info($inventoryResponse);
 
             //Step 8:
-            $telegramResponse = $this->telegramNotification($orderValue,$orderItems,$customer);
-//dd($telegramResponse);
-            Log::info($telegramResponse);
+            if($settings->telegramBot)
+            {
+                $telegramResponse = $this->telegramNotification($orderValue,$orderItems,$customer);
+                    //dd($telegramResponse);
+                Log::info($telegramResponse);
+            }
+            else
+            {
+                Log::info("Telegram Bot is disabled in bot order settings");
+            }
 
 
             // Step 9: Simulate order creation delay

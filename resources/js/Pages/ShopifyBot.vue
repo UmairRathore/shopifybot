@@ -30,23 +30,6 @@ const setMode = (mode) => {
     }
 };
 
-// $settings = OrderBotSettings::create([
-//     'order_range_min' =>$request->itemsPerOrder,
-//     'order_range_max' => $request->itemsPerOrderMin,
-//     'order_value_min' => $request->orderValueMin,
-//     'order_value_max' => $request->orderValueMax,
-//     'items_per_order_min' => 1,
-//     'items_per_order_max' => 3,
-//     'one_item_order_chance_min' => 20,
-//     'one_item_order_chance_max' => 80,
-//     'order_speed_min' => $request->orderSpeedMin,
-//     'order_speed_max' => $request->orderSpeed,
-//     'order_speed_unit' => $request->orderFrequency,
-//     'telegramBot' => false,
-//     'unlimitedOrders' => $request->unlimitedOrders,
-//     'csv_file_path' => null
-// ]);
-
 
 const  form = useForm({
     // orders: '',  // Initialize form.orders
@@ -63,7 +46,7 @@ const  form = useForm({
     order_speed_max: '',    //11
     order_frequency: 'second',  //12
     file_location: '',  //13
-    telegramBot: false, //14
+    telegram_bot: false, //14
 });
 
 const submitForm = () => {
@@ -183,7 +166,7 @@ const submitForm = () => {
 
                     <!-- Fifth Row -->
                     <div class="flex gap-2 mb-5">
-                        <input type="radio" v-model="form.telegram_bot" id="telegramBot" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600" />
+                        <input type="radio" v-model="form.telegram_bot" id="telegram_bot" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600" />
                         <label for="telegramBot" class="text-sm">Telegram Bot</label>
                     </div>
 

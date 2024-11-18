@@ -37,7 +37,7 @@ class OrdersController extends Controller
                 'order_speed_min' => $request->order_speed_min ?? '',
                 'order_speed_max' => $request->order_speed_max ?? '',
                 'order_speed_unit' => $request->order_frequency ?? '',
-                'telegramBot' => $request->telegramBot ?? '',
+                'telegram_bot' => $request->telegram_bot ?? '',
                 'unlimitedOrders' => $request->unlimitedOrders ?? '',
                 'csv_file_path' => $request->file_location ?? '',
             ]

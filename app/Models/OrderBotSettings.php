@@ -23,5 +23,6 @@ class OrderBotSettings extends Model
         'order_speed_max',
         'order_speed_unit',
         'csv_file_path',
+        'telegram_bot',
     ];
 }
