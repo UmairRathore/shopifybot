@@ -62,7 +62,7 @@ class OrderGenerate
         }
 
         // Step 4: Generate orders
-        $orderRange = rand($settings->order_range_min, $settings->order_range_max); // Get a random range for number of orders to create
+        $orderRange = rand($settings->order_range_min, $settings->order_range_max);
         $customers = $this->generateFakeCustomers();
 
         for ($i = 0; $i < $orderRange; $i++) {
@@ -93,12 +93,17 @@ class OrderGenerate
                         'address' => $customer['address'],
                     ],
                     'total_price' => $orderValue,
-                    'financial_status' => 'paid',
+                    'financial_status' => 'paid', // This indicates the payment is successful
                     'transactions' => [
                         [
                             'kind' => 'sale',
                             'status' => 'success',
                             'amount' => $orderValue,
+                            'gateway' => 'manual', // You can set 'manual' for bank transfer
+                            'payment_details' => [
+                                'credit_card_number' => 'xxxx-xxxx-xxxx-xxxx', // Placeholder for manual payment method
+                                'credit_card_expiry' => '01/23' // Optional
+                            ]
                         ]
                     ]
                 ]
@@ -108,12 +113,8 @@ class OrderGenerate
             $orderResponse = $this->shopifyService->generateOrder($orderPayload,$accessToken);
 
             Log::info($orderResponse);
+
             //Step 7:
-//            $inventoryResponse = $this->updateInventory($orderResponse['order'],$customer,$orderValue,$orderItems,$accessToken);
-
-//            Log::info($inventoryResponse);
-
-            //Step 8:
             if($settings->telegramBot)
             {
                 $telegramResponse = $this->telegramNotification($orderValue,$orderItems,$customer);
@@ -125,8 +126,7 @@ class OrderGenerate
                 Log::info("Telegram Bot is disabled in bot order settings");
             }
 
-
-            // Step 9: Simulate order creation delay
+            // Step 10: Simulate order creation delay
             sleep($orderSpeed);
         }
 
@@ -138,7 +138,7 @@ class OrderGenerate
     {
         $faker = Faker::create();
         $customers = [];
-        // Generate 5 fake customers for this example
+
         for ($i = 0; $i < 5; $i++) {
             $customers[] = [
                 'name' => $faker->name,

@@ -33,57 +33,27 @@ const setMode = (mode) => {
 };
 
 
-
-const refreshButtonText = ref("Refresh Token");
-const isRefreshDisabled = ref(false);
-const isTokenRefreshed = ref(false);
-const remainingTime = ref(0);
-const errorMessage = ref("");
-let timerInterval;
-const timerMinutes = computed(() => Math.floor(remainingTime.value / 60));
-const timerSeconds = computed(() => remainingTime.value % 60);
-const refreshToken = async () => {
-    refreshButtonText.value = "Processing...";
-    isRefreshDisabled.value = true;
-    errorMessage.value = "";
-    try {
-        const response = await fetch("/api/refresh-token", { method: "POST" });
-        if (!response.ok) throw new Error("Failed to refresh token");
-        isTokenRefreshed.value = true;
-        refreshButtonText.value = "Token Obtained";
-
-        // Start the 1-hour timer
-        remainingTime.value = 3600;
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            if (remainingTime.value > 0) {
-                remainingTime.value -= 1;
-            } else {
-                clearInterval(timerInterval);
-                isTokenRefreshed.value = false;
-                refreshButtonText.value = "Refresh Token";
-                isRefreshDisabled.value = false;
-            }
-        }, 1000);
-    } catch (error) {
-        console.error(error);
-        refreshButtonText.value = "Try Again";
-        isRefreshDisabled.value = false;
+const visitForm = useForm(
+    {
+        visit_order_unlimited: false,
+        visit_order_range_min: '',    //2
+        visit_order_range_max: '',    //3
+        visit_order_value_min: '',    //4
+        visit_order_value_max: '',    //5
+        visit_items_per_order_min: '',    //6
+        visit_items_per_order_max: '',    //7
+        visit_one_item_chance_min: '',    //8
+        visit_one_item_chance_max: '',    //9
+        visit_order_speed_min: '',    //10
+        visit_order_speed_max: '',    //11
+        visit_order_frequency: 'second',  //12
+        file_location: '',  //13
     }
-};
-const startProcess = () => {
-    if (!isTokenRefreshed.value) {
-        errorMessage.value = "Please refresh the token first.";
-        return;
-    }
-    console.log("Process started successfully!");
-    errorMessage.value = "";
-};
-
+)
 
 const  form = useForm({
     // orders: '',  // Initialize form.orders
-    unlimited_orders: '',   //1
+    unlimited_orders: false,   //1
     order_range_min: '',    //2
     order_range_max: '',    //3
     order_value_min: '',    //4
@@ -110,20 +80,27 @@ const submitForm = () => {
         },
     });
 };
+
+const submitVisitForm = () => {
+    // console.log(form);  // Ensure form.orders is defined
+    form.post(route("shopifybot.visit_store"), {
+        onSuccess: () => {
+            console.log("Form submitted successfully");
+        },
+        onError: (errors) => {
+            console.log(errors);
+        },
+    });
+};
 </script>
 
 <template>
     <AppLayout title="Shopify Bot">
-        <div class="flex items-center justify-center min-h-screen bg-gray-900 text-white px-6" v-if="purchase">
+        <div class="flex items-center justify-center min-h-screen bg-gray-900 text-white px-6">
             <div class="bg-gray-800 rounded-lg shadow-lg p-8 w-50">
-                <div class="mb-3">
-                    <button :disabled="isRefreshDisabled" @click="refreshToken"
-                        class="w-60 py-2 bg-blue-600 hover:bg-blue-700 rounded-2xl text-white">
-                        {{ refreshButtonText }}
-                    </button>
-                </div>
-                <div v-if="remainingTime > 0" class="text-center text-gray-800 font-bold">
-                    Next token refresh in: {{ timerMinutes }}m {{ timerSeconds }}s
+
+                <div class="mb-3 flex justify-between">
+                    <h4> Shopify Bot</h4>
                 </div>
 
                 <div class="mb-8">
@@ -146,19 +123,20 @@ const submitForm = () => {
                     </div>
                 </div>
 
+                <div v-if="purchase">
                 <form @submit.prevent="submitForm">
                     <!-- First Row -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
                         <div>
-                            <label class="block text-sm font-medium mb-2">Orders</label>
+<!--                            <label class="block text-sm font-medium mb-2">Orders</label>-->
                             <div class="flex gap-2">
-
+                                <label class="block text-sm font-medium mb-2">Orders</label>
                                 <input type="radio" v-model="form.unlimited_orders" id="unlimited" name="orders" value="unlimited" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600" />
                                 <label for="unlimited" class="text-sm">Unlimited</label>
                             </div>
                             <input type="text" v-model="form.order_range_min" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
-                        <div class="mt-7">
+                        <div class="mt-7 flex items-center">
                             <span class="text-white mr-3">-</span>
                             <input type="text" v-model="form.order_range_max" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
@@ -166,7 +144,7 @@ const submitForm = () => {
                             <label class="block text-sm font-medium mb-2 ps-5">Order Value ($)</label>
                             <input type="text" v-model="form.order_value_min" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
-                        <div class="mt-7">
+                        <div class="mt-7 flex items-center">
                             <span class="text-white mr-3">-</span>
                             <input type="text" v-model="form.order_value_max" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
@@ -178,7 +156,7 @@ const submitForm = () => {
                             <label class="block text-sm font-medium mb-2">Items per order</label>
                             <input type="text" v-model="form.items_per_order_min" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
-                        <div class="mt-7">
+                        <div class="mt-7 flex items-center">
                             <span class="text-white mr-3">-</span>
                             <input type="text" v-model="form.items_per_order_max" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
@@ -186,7 +164,7 @@ const submitForm = () => {
                             <label class="block text-sm font-medium mb-2 ps-5">1 item per order chance (%)</label>
                             <input type="text" v-model="form.one_item_chance_min" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
-                        <div class="mt-7">
+                        <div class="mt-7 flex items-center">
                             <span class="text-white mr-3">-</span>
                             <input type="text" v-model="form.one_item_chance_max" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
@@ -198,7 +176,7 @@ const submitForm = () => {
                             <label class="block text-sm font-medium mb-2">Order Speed</label>
                             <input type="text" v-model="form.order_speed_min" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
-                        <div class="mt-7">
+                        <div class="mt-7 flex items-center">
                             <span class="text-white mr-3">-</span>
                             <input type="text" v-model="form.order_speed_max" placeholder="10" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
                         </div>
@@ -243,8 +221,189 @@ const submitForm = () => {
                     {{ errorMessage }}
                 </div>
                 </form>
+                </div>
+
+                    <div  v-if="visit">
+                <form @submit.prevent="submitVisitForm">
+                    <!-- First row -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+                        <div>
+                            <div class="flex gap-2">
+                                <label class="block text-sm font-medium mb-2">Orders</label>
+                                <input type="radio" v-model="visitForm.visit_order_unlimited" id="unlimited" name="orders"
+                                       class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600" />
+                                <label for="unlimited" class="text-sm">Unlimited</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="text" v-model="visitForm.visit_order_range_min" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                        <div class="mt-7">
+                            <div class="flex items-center">
+                                <span class="text-white mr-3">-</span>
+                                <input type="text" v-model="visitForm.visit_order_range_max" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 ps-5">Order Value ($)</label>
+                            <div class="flex items-center">
+                                <input type="text" v-model="visitForm.visit_order_value_min" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                        <div class="mt-7">
+                            <div class="flex items-center">
+                                <span class="text-white mr-3">-</span>
+                                <input type="text" v-model="visitForm.visit_order_value_max" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- second row -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+                        <div>
+                            <div class="">
+                                <label class="block text-sm font-medium mb-2">Items per order</label>
+                                <input type="text" v-model="visitForm.visit_items_per_order_min" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                        <div class="mt-7">
+                            <div class="flex items-center">
+                                <span class="text-white mr-3">-</span>
+                                <input type="text" v-model="visitForm.visit_items_per_order_max" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 ps-5">1 item per order chance (%)</label>
+                            <div class="flex items-center">
+                                <input type="text" v-model="visitForm.visit_one_item_chance_min" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+
+                        <div class="mt-7">
+                            <div class="flex items-center">
+                                <span class="text-white mr-3">-</span>
+                                <input type="text" v-model="visitForm.visit_one_item_chance_max" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Third Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+                        <div>
+                            <div class="">
+                                <label class="block text-sm font-medium mb-2">Order Speed</label>
+                                <input type="text" v-model="visitForm.visit_order_speed_min" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                        <div class="mt-7">
+                            <div class="flex items-center">
+                                <span class="text-white mr-3">-</span>
+                                <input type="text" v-model="visitForm.visit_order_speed_max" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                        <div class="mt-7 col-span-2">
+                            <div class="flex items-center">
+                                <select name="" id="" v-model="visitForm.visit_order_frequency" class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white">
+                                    <option value="1">order per second</option>
+                                    <option value="1">order per minute</option>
+                                    <option value="1">order per hour</option>
+                                    <option value="1">order per day</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- fourth row -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+                        <div>
+                            <div class="">
+                                <label class="block text-sm font-medium mb-2">Add to cart rate (%)</label>
+                                <input type="text" v-model="visitForm.visit_cart_rate_min" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                        <div class="mt-7">
+                            <div class="flex items-center">
+                                <span class="text-white mr-3">-</span>
+                                <input type="text" v-model="visitForm.visit_cart_rate_max" placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 ps-5">Purchase conversion rate (%)</label>
+                            <div class="flex items-center">
+                                <input type="text" v-model="visitForm.visit_purchase_conversion_rate_max"  placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+
+                        <div class="mt-7">
+                            <div class="flex items-center">
+                                <span class="text-white mr-3">-</span>
+                                <input type="text" v-model="visitForm.visit_purchase_conversion_rate_max"  placeholder="10"
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-2xl text-white" />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- fifth row -->
+                    <div class="mb-5">
+                        <label class="block text-white text-sm font-bold mb-2">
+                            Proxies
+                        </label>
+                        <!--                    <div class="mb-5">-->
+                        <label class="block text-white text-sm font-bold mb-2">Customers Data (Name, Email, Address)</label>
+                        <input type="file" id="fileInput" class="block w-full text-sm bg-gray-700 border border-gray-300 rounded-lg cursor-pointer text-white focus:outline-none focus:shadow-none p-2 mb-3" @change="handleFileChange" style="display: none" />
+                        <div class="flex items-center bg-gray-700 border rounded-2xl p-1 text-white">
+                            <span class="mr-2 w-36">File Location:</span>
+                            <input type="text" v-model="file_location" class="bg-transparent border-none text-white w-full focus:outline-none" readonly @click="triggerFileInput" />
+                        </div>
+                        <!--                    </div>-->
+                    </div>
+                    <!-- sixth row -->
+                    <div class="mb-5">
+                        <label class="block text-white text-sm font-bold mb-2">
+                            Customers Data (Name, Email, Address)
+                        </label>
+                        <input type="file" id="fileInput"
+                               class="block w-full text-sm bg-gray-700 border border-gray-300 rounded-lg cursor-pointer text-white focus:outline-none focus:shadow-none p-2 mb-3"
+                               @change="handleFileChange" style="display: none" />
+                        <div class="flex items-center bg-gray-700 border rounded-2xl p-1 text-white">
+                            <span class="mr-2 w-36">File Location:</span>
+                            <input type="text" id="fileLocation" :value="fileLocation"
+                                   class="bg-transparent border-none text-white w-full focus:outline-none focus:border-none focus:shadow-none"
+                                   readonly @click="triggerFileInput" />
+                        </div>
+                    </div>
+                    <!-- seven row -->
+                    <div class="flex gap-2 mb-5">
+                        <input type="radio" id="unlimited" name="orders"
+                               class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600" />
+                        <label for="unlimited" class="text-sm">Telegram Bot</label>
+                    </div>
+                    <!-- Footer -->
+                    <div class="mb-3">
+                        <button class="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-2xl text-white">
+                            Start
+                        </button>
+                    </div>
+                    <p class="text-center text-sm text-gray-400">
+                        Add to cart delay?
+                    </p>
+                </form>
+                    </div>
             </div>
         </div>
+
+        <!-- Visit -->
+
+
     </AppLayout>
 </template>
 

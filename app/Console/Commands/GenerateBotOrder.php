@@ -21,7 +21,11 @@ class GenerateBotOrder extends Command
      */
     protected $description = 'To Generate bot Orders on Shopify';
 
-
+    /**
+     * The Order Generation Service.
+     *
+     * @var string
+     */
     protected $orderGenerate;
 
     public function __construct(OrderGenerate $orderGenerate)
@@ -35,9 +39,18 @@ class GenerateBotOrder extends Command
      */
     public function handle()
     {
-        //
-       $cron =  $this->orderGenerate->generateOrders();
-//       return  response()->json(['success',$cron]);
+        $orderSettings = \App\Models\OrderBotSettings::first();
+        $frequency = strtolower($orderSettings->order_frequency);
+
+        if ($frequency == 'second') {
+            for ($i = 0; $i < 60; $i++) {
+                $this->orderGenerate->generateOrders();
+                sleep(1);
+            }
+        } else {
+
+            $this->orderGenerate->generateOrders();
+        }
     }
 
 
