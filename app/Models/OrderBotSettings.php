@@ -25,5 +25,6 @@ class OrderBotSettings extends Model
         'csv_file_path',
         'telegram_bot',
         'unlimited_orders',
+        'shopify_bot',
     ];
 }

@@ -21,11 +21,24 @@ class OrdersController extends Controller
     }
 
 
-    public function storeOrderBotSetting(Request $request)
+    public function storeSettings(Request $request)
     {
+        // Validate the incoming request
+        $request->validate([
+            'file_location' => 'nullable|file|mimes:csv|max:2048', // Adjust validation rules as needed
+        ]);
+
+
+
+        if ($request->hasFile('file_location')) {
+            $uploadedFile = $request->file('file_location');
+            $csvFileName = $uploadedFile->getClientOriginalName();
+            $csvFileExtension = $uploadedFile->getClientOriginalExtension();
+            $csvFilePath = $uploadedFile->store('csv_files', 'public');
+        }
 
         $settings = OrderBotSettings::updateOrCreate(
-                [
+            [
                 'order_range_min' => $request->order_range_min ?? '',
                 'order_range_max' => $request->order_range_max ?? '',
                 'order_value_min' => $request->order_value_min ?? '',
@@ -37,13 +50,18 @@ class OrdersController extends Controller
                 'order_speed_min' => $request->order_speed_min ?? '',
                 'order_speed_max' => $request->order_speed_max ?? '',
                 'order_speed_unit' => $request->order_frequency ?? '',
-                'telegram_bot' => $request->telegram_bot ?? false,
-                'unlimited_orders' => $request->unlimited_orders ?? false,
-                'csv_file_path' => $request->file_location ?? '',
+                'telegram_bot' => $request->telegram_bot ? true : false,
+                'unlimited_orders' => $request->unlimited_orders ? true : false,
+                'csv_file_path' => $csvFilePath,
+                'csv_file_name' => $csvFileName,
+                'csv_file_extension' => $csvFileExtension,
             ]
         );
 
-        dd($settings->order_speed_unit);
+        return response()->json([
+            'message' => 'Settings updated successfully',
+            'settings' => $settings,
+        ]);
     }
 
 

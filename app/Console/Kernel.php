@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Models\OrderBotSettings;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -11,6 +12,14 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \App\Console\Commands\GenerateBotOrder::class,
     ];
+
+    protected function shouldRunCronJob(): bool
+    {
+        $botStatus = \App\Models\OrderBotSettings::select('shopify_bot')->first();
+
+        return $botStatus ? (bool)$botStatus->shopify_bot : false;
+    }
+
 
     /**
      * Define the application's command schedule.
@@ -24,20 +33,35 @@ class Kernel extends ConsoleKernel
 
             switch ($frequency) {
                 case 'second':
-                    // Laravel's scheduler doesn't support per-second execution natively
-                    // You'd need to use a separate script or cron job for real-time second intervals
+                    $schedule->command('generate-bot-order')
+                        ->everyMinute()
+                        ->when(function () {
+                            return $this->shouldRunCronJob(); // Check if the cron should run
+                        });
                     break;
 
                 case 'minute':
-                    $schedule->command('generate-bot-order')->everyMinute();
+                    $schedule->command('generate-bot-order')
+                        ->everyMinute()
+                        ->when(function () {
+                            return $this->shouldRunCronJob();
+                        });
                     break;
 
                 case 'hourly':
-                    $schedule->command('generate-bot-order')->hourly();
+                    $schedule->command('generate-bot-order')
+                        ->hourly()
+                        ->when(function () {
+                            return $this->shouldRunCronJob(); // Check if the cron should run
+                        });
                     break;
 
                 case 'day':
-                    $schedule->command('generate-bot-order')->daily();
+                    $schedule->command('generate-bot-order')
+                        ->daily()
+                        ->when(function () {
+                            return $this->shouldRunCronJob(); // Check if the cron should run
+                        });
                     break;
 
                 default:
@@ -45,6 +69,7 @@ class Kernel extends ConsoleKernel
             }
         }
     }
+
 
 
     /**

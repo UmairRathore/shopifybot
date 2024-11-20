@@ -33,8 +33,7 @@ const setMode = (mode) => {
 };
 
 
-const visitForm = useForm(
-    {
+const visitForm = useForm({
         visit_order_unlimited: false,
         visit_order_range_min: '',    //2
         visit_order_range_max: '',    //3
@@ -48,8 +47,7 @@ const visitForm = useForm(
         visit_order_speed_max: '',    //11
         visit_order_frequency: 'second',  //12
         file_location: '',  //13
-    }
-)
+    })
 
 const  form = useForm({
     // orders: '',  // Initialize form.orders
@@ -68,15 +66,15 @@ const  form = useForm({
     file_location: '',  //13
     telegram_bot: false, //14
 });
+const botStatus = ref(false); // Reactive property for bot status
 
 const submitForm = () => {
-    // console.log(form);  // Ensure form.orders is defined
     form.post(route("shopifybot.store"), {
         onSuccess: () => {
             console.log("Form submitted successfully");
         },
         onError: (errors) => {
-            console.log(errors);
+            console.error("Form submission errors:", errors);
         },
     });
 };
@@ -92,8 +90,29 @@ const submitVisitForm = () => {
         },
     });
 };
-</script>
 
+//
+// const updateBotStatus = () => {
+//     form.get(route("shopifybot.visit_store"), {
+//         onSuccess: (response) => {
+//             if (response.props.shopify_bot !== undefined) {
+//                 this.botStatus = response.props.shopify_bot;
+//             }
+//             if (response.props.message) {
+//                 this.message = response.props.message;
+//             }
+//         },
+//         onError: (errors) => {
+//             console.error('Error updating bot status:', errors);
+//         },
+//     });
+// }
+
+
+
+
+
+</script>
 <template>
     <AppLayout title="Shopify Bot">
         <div class="flex items-center justify-center min-h-screen bg-gray-900 text-white px-6">
@@ -101,6 +120,13 @@ const submitVisitForm = () => {
 
                 <div class="mb-3 flex justify-between">
                     <h4> Shopify Bot</h4>
+                   <div class="flex gap-5">
+                       <button @click="updateBotStatus()" class="bg-blue-800 w-40 px-4 py-2 focus:bg-blue-800 active:bg-blue-900 rounded-md text-white text-center">
+                           {{ botStatus ? 'Stop Bot' : 'Run Bot' }}
+                       </button>
+<!--                       <button @click="refreshToken()" class="bg-blue-800 w-40 px-4 py-2 focus:bg-blue-800 active:bg-blue-900 rounded-md text-white text-center">-->
+<!--                           Refresh Token</button>-->
+                   </div>
                 </div>
 
                 <div class="mb-8">

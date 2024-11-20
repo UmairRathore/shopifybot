@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ShopifyBotController;
 use App\Http\Controllers\ShopifyController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,9 @@ Route::middleware([
 
     Route::get('/generate-order', [OrdersController::class, 'generateOrders']);
     Route::post('/bot-order-setting', [OrdersController::class, 'storeOrderBotSetting'])->name('shopifybot.store');
+
+
+    Route::get('/shopifybot-status', [ShopifyBotController::class, 'updateShopifyBotStatus'])->name('shopifybot.Status');
 
 });
 

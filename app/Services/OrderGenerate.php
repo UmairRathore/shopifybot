@@ -8,6 +8,7 @@ use Faker\Factory as Faker;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Telegram\Bot\Api;
 
 class OrderGenerate
@@ -61,9 +62,8 @@ class OrderGenerate
             Log::info('Fake OrderBotSettings created.');
         }
 
-        // Step 4: Generate orders
+        $customers = $this->generateFakeCustomers($settings->csv_file_pat);
         $orderRange = rand($settings->order_range_min, $settings->order_range_max);
-        $customers = $this->generateFakeCustomers();
 
         for ($i = 0; $i < $orderRange; $i++) {
             $orderValue = rand($settings->order_value_min, $settings->order_value_max);
@@ -134,18 +134,38 @@ class OrderGenerate
     }
 
 
-    private function generateFakeCustomers()
+    private function generateFakeCustomers($csvFilPath)
     {
-        $faker = Faker::create();
-        $customers = [];
+        if ($csvFilPath && Storage::exists($csvFilPath)) {
+            Log::info('CSV file found: ' . $csvFilPath);
 
-        for ($i = 0; $i < 5; $i++) {
-            $customers[] = [
-                'name' => $faker->name,
-                'email' => $faker->email,
-                'address' => $faker->address
-            ];
+            // Open the file for reading
+            $file = Storage::path($csvFilPath);
+            if (($handle = fopen($file, 'r')) !== false) {
+                $header = fgetcsv($handle); // Read the first row as headers
+                while (($row = fgetcsv($handle)) !== false) {
+                    $customerData = array_combine($header, $row); // Combine headers with row values
+                    $customers[] = [
+                        'name' => $customerData['name'] ?? null,
+                        'email' => $customerData['email'] ?? null,
+                        'address' => $customerData['address'] ?? null,
+                    ];
+                }
+                fclose($handle);
+            }
+        } else {
+            Log::info('CSV file does not exist. Generating fake customers.');
+
+            $faker = Faker::create();
+            for ($i = 0; $i < 10; $i++) {
+                $customers[] = [
+                    'name' => $faker->name,
+                    'email' => $faker->email,
+                    'address' => $faker->address,
+                ];
+            }
         }
+
         return $customers;
     }
 
