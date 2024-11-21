@@ -66,7 +66,19 @@ class OrderGenerate
         $orderRange = rand($settings->order_range_min, $settings->order_range_max);
 
         for ($i = 0; $i < $orderRange; $i++) {
-            $orderValue = rand($settings->order_value_min, $settings->order_value_max);
+
+            $baseOrderValue = rand($settings->order_value_min, $settings->order_value_max);
+
+            $randomCents = rand(0, 99);
+
+            $orderValue = $baseOrderValue + ($randomCents / 100);
+
+            if ($orderValue < $settings->order_value_min) {
+                $orderValue += 100;
+            } elseif ($orderValue > $settings->order_value_max) {
+                $orderValue -= 100;
+            }
+
             $itemsPerOrder = rand($settings->items_per_order_min, $settings->items_per_order_max);
             $oneItemChance = rand($settings->one_item_order_chance_min, $settings->one_item_order_chance_max);
             $orderSpeed = rand($settings->order_speed_min, $settings->order_speed_max);
@@ -75,14 +87,12 @@ class OrderGenerate
             for ($j = 0; $j < $itemsPerOrder; $j++) {
                 $randomProduct = $products[array_rand($products)];
                 $orderItems[] = [
-                    'variant_id' => $randomProduct['variants'][0]['id'], // Assuming we are using the first variant
+                    'variant_id' => $randomProduct['variants'][0]['id'],
                     'quantity' => 1
                 ];
             }
 
-
             $customer = $customers[array_rand($customers)];
-
 
             $orderPayload = [
                 'order' => [
@@ -93,7 +103,7 @@ class OrderGenerate
                         'address' => $customer['address'],
                     ],
                     'total_price' => $orderValue,
-                    'financial_status' => 'paid', // This indicates the payment is successful
+                    'financial_status' => 'paid', // Indicates the payment is successful
                     'transactions' => [
                         [
                             'kind' => 'sale',
@@ -109,26 +119,23 @@ class OrderGenerate
                 ]
             ];
 
-            //Step 6: Create Orders
-            $orderResponse = $this->shopifyService->generateOrder($orderPayload,$accessToken);
+            // Step 6: Create Orders
+            $orderResponse = $this->shopifyService->generateOrder($orderPayload, $accessToken);
 
             Log::info($orderResponse);
 
-            //Step 7:
-            if($settings->telegramBot)
-            {
-                $telegramResponse = $this->telegramNotification($orderValue,$orderItems,$customer);
-                    //dd($telegramResponse);
+            // Step 7: Notify via Telegram if enabled
+            if ($settings->telegram_bot) {
+                $telegramResponse = $this->telegramNotification($orderValue, $orderItems, $customer);
                 Log::info($telegramResponse);
-            }
-            else
-            {
+            } else {
                 Log::info("Telegram Bot is disabled in bot order settings");
             }
 
             // Step 10: Simulate order creation delay
             sleep($orderSpeed);
         }
+
 
         return response()->json(['status' => 'Orders generated successfully']);
     }
