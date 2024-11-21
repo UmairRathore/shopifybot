@@ -8,6 +8,7 @@ use Faker\Factory as Faker;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class OrdersController extends Controller
 {
@@ -21,20 +22,21 @@ class OrdersController extends Controller
     }
 
 
-    public function storeSettings(Request $request)
+    public function storeOrderBotSetting(Request $request)
     {
-        // Validate the incoming request
+
         $request->validate([
-            'file_location' => 'nullable|file|mimes:csv|max:2048', // Adjust validation rules as needed
+            'file_location' => 'nullable|file|mimes:csv|max:2048',
         ]);
 
 
-
+        $fileName = '';
         if ($request->hasFile('file_location')) {
             $uploadedFile = $request->file('file_location');
             $csvFileName = $uploadedFile->getClientOriginalName();
             $csvFileExtension = $uploadedFile->getClientOriginalExtension();
             $csvFilePath = $uploadedFile->store('csv_files', 'public');
+            $fileName = $csvFilePath.'-'.$csvFileName.'.'.$csvFileExtension;
         }
 
         $settings = OrderBotSettings::updateOrCreate(
@@ -52,16 +54,12 @@ class OrdersController extends Controller
                 'order_speed_unit' => $request->order_frequency ?? '',
                 'telegram_bot' => $request->telegram_bot ? true : false,
                 'unlimited_orders' => $request->unlimited_orders ? true : false,
-                'csv_file_path' => $csvFilePath,
-                'csv_file_name' => $csvFileName,
-                'csv_file_extension' => $csvFileExtension,
+                'csv_file_path' => $fileName ?? '',
             ]
         );
 
-        return response()->json([
-            'message' => 'Settings updated successfully',
-            'settings' => $settings,
-        ]);
+        return Inertia::render('ShopifyBot', compact( 'settings'));
+
     }
 
 

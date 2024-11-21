@@ -68,6 +68,54 @@ const  form = useForm({
 });
 const botStatus = ref(false); // Reactive property for bot status
 
+//
+// const refreshButtonText = ref("Refresh Token");
+// const isRefreshDisabled = ref(false);
+// const isTokenRefreshed = ref(false);
+// const remainingTime = ref(0);
+// const errorMessage = ref("");
+// let timerInterval;
+// const timerMinutes = computed(() => Math.floor(remainingTime.value / 60));
+// const timerSeconds = computed(() => remainingTime.value % 60);
+// const refreshToken = async () => {
+//     refreshButtonText.value = "Processing...";
+//     isRefreshDisabled.value = true;
+//     errorMessage.value = "";
+//     try {
+//         const response = await fetch("/api/refresh-token", { method: "POST" });
+//         if (!response.ok) throw new Error("Failed to refresh token");
+//         isTokenRefreshed.value = true;
+//         refreshButtonText.value = "Token Obtained";
+//
+//         Start the 1-hour timer
+//         remainingTime.value = 3600;
+//         clearInterval(timerInterval);
+//         timerInterval = setInterval(() => {
+//             if (remainingTime.value > 0) {
+//                 remainingTime.value -= 1;
+//             } else {
+//                 clearInterval(timerInterval);
+//                 isTokenRefreshed.value = false;
+//                 refreshButtonText.value = "Refresh Token";
+//                 isRefreshDisabled.value = false;
+//             }
+//         }, 1000);
+//     } catch (error) {
+//         console.error(error);
+//         refreshButtonText.value = "Try Again";
+//         // isRefreshDisabled.value = false;
+//     }
+// };
+const startProcess = () => {
+    if (!isTokenRefreshed.value) {
+        errorMessage.value = "Please refresh the token first.";
+        return;
+    }
+    console.log("Process started successfully!");
+    errorMessage.value = "";
+};
+
+
 const submitForm = () => {
     form.post(route("shopifybot.store"), {
         onSuccess: () => {
@@ -79,8 +127,9 @@ const submitForm = () => {
     });
 };
 
+
+
 const submitVisitForm = () => {
-    // console.log(form);  // Ensure form.orders is defined
     form.post(route("shopifybot.visit_store"), {
         onSuccess: () => {
             console.log("Form submitted successfully");
@@ -91,22 +140,23 @@ const submitVisitForm = () => {
     });
 };
 
-//
-// const updateBotStatus = () => {
-//     form.get(route("shopifybot.visit_store"), {
-//         onSuccess: (response) => {
-//             if (response.props.shopify_bot !== undefined) {
-//                 this.botStatus = response.props.shopify_bot;
-//             }
-//             if (response.props.message) {
-//                 this.message = response.props.message;
-//             }
-//         },
-//         onError: (errors) => {
-//             console.error('Error updating bot status:', errors);
-//         },
-//     });
-// }
+const updateBotStatus = () => {
+    form.get(route("shopifybot.Status"), {
+        onSuccess: (response) => {
+            console.log(response); // Check the full structure of the response
+
+            if (response.shopify_bot !== undefined) {
+                console.log("Shopify Bot Status:", response.shopify_bot);
+                this.botStatus = response.shopify_bot; // Update your Vue/React data or state
+            } else {
+                console.error("Shopify bot status not found.");
+            }
+        },
+        onError: (errors) => {
+            console.error("Error updating bot status:", errors);
+        },
+    });
+};
 
 
 

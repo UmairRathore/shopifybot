@@ -20,24 +20,23 @@ class ShopifyBotController extends Controller
             $botStatus = OrderBotSettings::select('shopify_bot')->first();
 
             if ($botStatus) {
-                // Toggle the bot status
                 $botStatus->shopify_bot = !$botStatus->shopify_bot;
                 $botStatus->save();
 
-                // Return an Inertia response with the updated bot status
-                return Inertia::render('shopifybot.index', [
+                return back()->with([
+                    'shopify_bot' => $botStatus->shopify_bot,
                     'message' => 'Bot status updated successfully',
-                    'shopify_bot' => $botStatus->shopify_bot
                 ]);
             } else {
-                return Inertia::render('shopifybot.index', [
+                return back()->withErrors([
                     'message' => 'Bot status not found',
                 ]);
             }
+
         }
 
-        return Inertia::render('shopifybot.index', [
-            'message' => 'User Not found',
+        return back()->withErrors([
+            'message' => 'User  not found',
         ]);
 }
 
